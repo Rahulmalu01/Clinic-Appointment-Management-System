@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}History - Healthcare System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>🧾 Activity History</h2>
+    <div style="margin-top: 1.5rem;">
+        {% if logs %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 0.75rem; text-align: left;">Time</th>
+                    <th style="padding: 0.75rem; text-align: left;">Action</th>
+                    <th style="padding: 0.75rem; text-align: left;">Target</th>
+                    <th style="padding: 0.75rem; text-align: left;">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr style="border-top: 1px solid #e0e0e0;">
+                    <td style="padding: 0.75rem;">{{ log[5] }}</td>
+                    <td style="padding: 0.75rem;">{{ log[2] }}</td>
+                    <td style="padding: 0.75rem;">{{ log[3] or '-' }}</td>
+                    <td style="padding: 0.75rem;">{{ log[4] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No activity history available.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

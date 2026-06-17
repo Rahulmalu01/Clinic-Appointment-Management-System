@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from contextlib import asynccontextmanager
-from database import init_db, get_user, create_user, create_doctor, create_patient
+from database import init_db, get_user, create_user, create_doctor, create_patient, log_activity, create_appointment, get_appointment_by_id, update_appointment_status, reschedule_appointment, extend_appointment_duration, get_todays_appointments_for_doctor, get_appointments_for_patient, get_appointments_for_doctor, get_all_appointments, get_history_for_user, get_recent_activity
 from dotenv import load_dotenv
 
 import hashlib
@@ -59,6 +59,13 @@ class UserPublic(BaseModel):
     full_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+
+
+class AppointmentCreate(BaseModel):
+    doctor_username: str
+    scheduled_at: str
+    duration_minutes: int = 30
+    notes: Optional[str] = None
 
 
 def hash_password(password: str):
@@ -129,12 +136,24 @@ def render(request: Request, name: str, context: dict | None = None, user: Optio
         payload["user"] = user
     if context:
         payload.update(context)
-    return templates.TemplateResponse(request=request, name=name, context=payload)
+    return templates.TemplateResponse(name=name, context=payload)
 
 
 def require_admin(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin privileges required")
+    return current_user
+
+
+def require_doctor(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:
+    if current_user.role != "doctor":
+        raise HTTPException(status_code=403, detail="Doctor privileges required")
+    return current_user
+
+
+def require_patient(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:
+    if current_user.role != "patient":
+        raise HTTPException(status_code=403, detail="Patient privileges required")
     return current_user
 
 
@@ -193,6 +212,86 @@ async def create_doctor_endpoint(request: Request, username: str = Form(...), pa
 @app.get('/profile/')
 async def profile(request: Request, current_user: UserPublic = Depends(get_current_user)):
     return render(request, 'profile.html', {"current_user": current_user}, user=current_user)
+
+
+@app.get('/appointments/')
+async def appointments(request: Request, current_user: UserPublic = Depends(get_current_user)):
+    if current_user.role == 'patient':
+        appointments = get_appointments_for_patient(current_user.username)
+    elif current_user.role == 'doctor':
+        appointments = get_appointments_for_doctor(current_user.username)
+    else:
+        appointments = get_all_appointments()
+    return render(request, 'appointments.html', {"appointments": appointments, "current_user": current_user}, user=current_user)
+
+
+@app.post('/appointments/book/', response_class=HTMLResponse)
+async def book_appointment(request: Request, doctor_username: str = Form(...), scheduled_at: str = Form(...), duration_minutes: int = Form(30), notes: str = Form(""), current_user: UserPublic = Depends(require_patient)):
+    appointment_id = create_appointment(current_user.username, doctor_username, scheduled_at, duration_minutes, notes or "")
+    log_activity(current_user.username, current_user.role, "booked_appointment", doctor_username, f"Appointment ID {appointment_id}")
+    return render(request, 'appointments.html', {"success": "Appointment booked successfully", "appointments": get_appointments_for_patient(current_user.username), "current_user": current_user}, user=current_user)
+
+
+@app.get('/doctor/schedule/')
+async def doctor_schedule(request: Request, current_user: UserPublic = Depends(require_doctor)):
+    appointments = get_todays_appointments_for_doctor(current_user.username)
+    return render(request, 'doctor_schedule.html', {"appointments": appointments, "current_user": current_user}, user=current_user)
+
+
+@app.post('/doctor/appointment/{appointment_id}/status/', response_class=HTMLResponse)
+async def doctor_update_appointment_status(request: Request, appointment_id: int, status: str = Form(...), current_user: UserPublic = Depends(require_doctor)):
+    appointment = get_appointment_by_id(appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    if appointment[2] != current_user.username:
+        raise HTTPException(status_code=403, detail="Cannot modify appointments for another doctor")
+    if status not in {"approved", "completed", "canceled"}:
+        raise HTTPException(status_code=400, detail="Invalid appointment status")
+    update_appointment_status(appointment_id, status)
+    log_activity(current_user.username, current_user.role, f"appointment_{status}", appointment[1], f"Appointment ID {appointment_id}")
+    appointments = get_todays_appointments_for_doctor(current_user.username)
+    return render(request, 'doctor_schedule.html', {"appointments": appointments, "current_user": current_user, "success": f"Appointment {status} successfully."}, user=current_user)
+
+
+@app.post('/doctor/appointment/{appointment_id}/reschedule/', response_class=HTMLResponse)
+async def doctor_reschedule_appointment(request: Request, appointment_id: int, scheduled_at: str = Form(...), current_user: UserPublic = Depends(require_doctor)):
+    appointment = get_appointment_by_id(appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    if appointment[2] != current_user.username:
+        raise HTTPException(status_code=403, detail="Cannot modify appointments for another doctor")
+    reschedule_appointment(appointment_id, scheduled_at)
+    log_activity(current_user.username, current_user.role, "appointment_rescheduled", appointment[1], f"Appointment ID {appointment_id} rescheduled to {scheduled_at}")
+    appointments = get_todays_appointments_for_doctor(current_user.username)
+    return render(request, 'doctor_schedule.html', {"appointments": appointments, "current_user": current_user, "success": "Appointment rescheduled successfully."}, user=current_user)
+
+
+@app.post('/doctor/appointment/{appointment_id}/extend/', response_class=HTMLResponse)
+async def doctor_extend_appointment(request: Request, appointment_id: int, extra_minutes: int = Form(...), current_user: UserPublic = Depends(require_doctor)):
+    appointment = get_appointment_by_id(appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    if appointment[2] != current_user.username:
+        raise HTTPException(status_code=403, detail="Cannot modify appointments for another doctor")
+    if extra_minutes <= 0:
+        raise HTTPException(status_code=400, detail="Extra minutes must be positive")
+    extend_appointment_duration(appointment_id, extra_minutes)
+    log_activity(current_user.username, current_user.role, "appointment_extended", appointment[1], f"Appointment ID {appointment_id} extended by {extra_minutes} minutes")
+    appointments = get_todays_appointments_for_doctor(current_user.username)
+    return render(request, 'doctor_schedule.html', {"appointments": appointments, "current_user": current_user, "success": "Appointment extended successfully."}, user=current_user)
+
+
+@app.get('/history/')
+async def history(request: Request, current_user: UserPublic = Depends(get_current_user)):
+    logs = get_history_for_user(current_user.username)
+    return render(request, 'history.html', {"logs": logs, "current_user": current_user}, user=current_user)
+
+
+@app.get('/admin/summary/')
+async def admin_summary(request: Request, admin: UserPublic = Depends(require_admin)):
+    appointments = get_all_appointments()
+    recent_activity = get_recent_activity(50)
+    return render(request, 'admin_summary.html', {"appointments": appointments, "recent_activity": recent_activity, "current_user": admin}, user=admin)
 
 
 @app.get('/logout/')

@@ -8,89 +8,149 @@
         <h2 style="color: white; margin-bottom: 2rem;">📊 Dashboard</h2>
         
         {% if current_user %}
+        <!-- Admin Actions -->
         {% if current_user.role == 'admin' %}
-        <div style="margin-bottom: 1rem;">
-            <a href="/admin/doctors/new" style="display: inline-block; background: #2ecc71; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-weight: 600;">➕ Create Doctor</a>
+        <div style="margin-bottom: 2rem; display: flex; gap: 1rem;">
+            <a href="/admin/doctors/new" style="display: inline-block; background: #2ecc71; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">➕ Create Doctor</a>
+            <a href="/admin/summary/" style="display: inline-block; background: #3498db; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">📊 View Summary</a>
         </div>
         {% endif %}
+        
+        <!-- Doctor Actions -->
+        {% if current_user.role == 'doctor' %}
+        <div style="margin-bottom: 2rem; display: flex; gap: 1rem;">
+            <a href="/doctor/schedule/" style="display: inline-block; background: #2ecc71; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">📅 Today's Schedule</a>
+            <a href="/appointments/" style="display: inline-block; background: #764ba2; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">📋 All Appointments</a>
+        </div>
+        {% endif %}
+        
+        <!-- Patient Actions -->
+        {% if current_user.role == 'patient' %}
+        <div style="margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="/appointments/" style="display: inline-block; background: #764ba2; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">📅 My Appointments</a>
+            <a href="/history/" style="display: inline-block; background: #f39c12; color: white; padding: 0.75rem 1.5rem; border-radius: 6px; text-decoration: none; font-weight: 600;">📜 Activity History</a>
+        </div>
+        {% endif %}
+        
         <div class="dashboard-grid">
-            <!-- Health Records Card -->
-            <div class="card">
-                <h3 style="color: #667eea; margin-bottom: 1rem;">📋 Medical Records</h3>
-                <p style="color: #666; margin-bottom: 1rem;">Access and manage your medical records</p>
-                <button onclick="alert('Feature coming soon!')" style="width: 100%; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                    View Records
-                </button>
-            </div>
-            
-            <!-- Appointments Card -->
+            {% if current_user.role == 'patient' %}
+            <!-- Patient Cards -->
             <div class="card">
                 <h3 style="color: #764ba2; margin-bottom: 1rem;">📅 Appointments</h3>
-                <p style="color: #666; margin-bottom: 1rem;">Schedule and manage appointments</p>
-                <button onclick="alert('Feature coming soon!')" style="width: 100%; padding: 0.75rem; background: #764ba2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                <p style="color: #666; margin-bottom: 1rem;">Schedule and manage your appointments</p>
+                <a href="/appointments/" style="display: block; width: 100%; padding: 0.75rem; background: #764ba2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
                     View Appointments
-                </button>
+                </a>
             </div>
             
-            <!-- Prescriptions Card -->
             <div class="card">
-                <h3 style="color: #e74c3c; margin-bottom: 1rem;">💊 Prescriptions</h3>
-                <p style="color: #666; margin-bottom: 1rem;">View your current prescriptions</p>
-                <button onclick="alert('Feature coming soon!')" style="width: 100%; padding: 0.75rem; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                    View Prescriptions
-                </button>
+                <h3 style="color: #e74c3c; margin-bottom: 1rem;">📜 History</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View your activity and history</p>
+                <a href="/history/" style="display: block; width: 100%; padding: 0.75rem; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View History
+                </a>
             </div>
             
-            <!-- Lab Results Card -->
             <div class="card">
-                <h3 style="color: #27ae60; margin-bottom: 1rem;">🧪 Lab Results</h3>
-                <p style="color: #666; margin-bottom: 1rem;">Check your lab test results</p>
-                <button onclick="alert('Feature coming soon!')" style="width: 100%; padding: 0.75rem; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                    View Results
-                </button>
+                <h3 style="color: #667eea; margin-bottom: 1rem;">👤 Profile</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View and update your profile</p>
+                <a href="/profile/" style="display: block; width: 100%; padding: 0.75rem; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View Profile
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if current_user.role == 'doctor' %}
+            <!-- Doctor Cards -->
+            <div class="card">
+                <h3 style="color: #2ecc71; margin-bottom: 1rem;">📅 Today's Schedule</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View and manage today's appointments</p>
+                <a href="/doctor/schedule/" style="display: block; width: 100%; padding: 0.75rem; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View Schedule
+                </a>
             </div>
             
-            <!-- Health Metrics Card -->
             <div class="card">
-                <h3 style="color: #f39c12; margin-bottom: 1rem;">📈 Health Metrics</h3>
-                <p style="color: #666; margin-bottom: 1rem;">Track your vital health metrics</p>
-                <button onclick="alert('Feature coming soon!')" style="width: 100%; padding: 0.75rem; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                    View Metrics
-                </button>
+                <h3 style="color: #764ba2; margin-bottom: 1rem;">📋 All Appointments</h3>
+                <p style="color: #666; margin-bottom: 1rem;">See all your scheduled appointments</p>
+                <a href="/appointments/" style="display: block; width: 100%; padding: 0.75rem; background: #764ba2; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View All
+                </a>
             </div>
             
-            <!-- Insurance Card -->
             <div class="card">
-                <h3 style="color: #3498db; margin-bottom: 1rem;">🏥 Insurance</h3>
-                <p style="color: #666; margin-bottom: 1rem;">Manage your insurance information</p>
-                <button onclick="alert('Feature coming soon!')" style="width: 100%; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                    View Insurance
-                </button>
+                <h3 style="color: #f39c12; margin-bottom: 1rem;">📜 Activity</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View your activity history</p>
+                <a href="/history/" style="display: block; width: 100%; padding: 0.75rem; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View Activity
+                </a>
             </div>
+            {% endif %}
+            
+            {% if current_user.role == 'admin' %}
+            <!-- Admin Cards -->
+            <div class="card">
+                <h3 style="color: #3498db; margin-bottom: 1rem;">📊 System Summary</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View system activity and appointments</p>
+                <a href="/admin/summary/" style="display: block; width: 100%; padding: 0.75rem; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View Summary
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: #2ecc71; margin-bottom: 1rem;">➕ Create Doctor</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Add a new doctor to the system</p>
+                <a href="/admin/doctors/new" style="display: block; width: 100%; padding: 0.75rem; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    Create Doctor
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: #9b59b6; margin-bottom: 1rem;">📅 All Appointments</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View all system appointments</p>
+                <a href="/appointments/" style="display: block; width: 100%; padding: 0.75rem; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View All
+                </a>
+            </div>
+            {% endif %}
         </div>
         
-        <!-- Quick Stats -->
+        <!-- Quick Stats (Patient Only) -->
+        {% if current_user.role == 'patient' %}
         <div style="margin-top: 3rem; background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
             <h3 style="color: #333; margin-bottom: 1rem;">📊 Quick Stats</h3>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
                 <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
-                    <p style="font-size: 2rem; color: #667eea; font-weight: bold;">3</p>
-                    <p style="color: #666;">Upcoming Appointments</p>
+                    <p style="font-size: 2rem; color: #667eea; font-weight: bold;">📅</p>
+                    <p style="color: #666;">Your appointments available at any time</p>
                 </div>
                 <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
-                    <p style="font-size: 2rem; color: #764ba2; font-weight: bold;">12</p>
-                    <p style="color: #666;">Medical Records</p>
+                    <p style="font-size: 2rem; color: #764ba2; font-weight: bold;">📜</p>
+                    <p style="color: #666;">Activity history tracking</p>
                 </div>
                 <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
-                    <p style="font-size: 2rem; color: #e74c3c; font-weight: bold;">5</p>
-                    <p style="color: #666;">Active Prescriptions</p>
-                </div>
-                <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 5px;">
-                    <p style="font-size: 2rem; color: #27ae60; font-weight: bold;">2</p>
-                    <p style="color: #666;">New Lab Results</p>
+                    <p style="font-size: 2rem; color: #e74c3c; font-weight: bold;">🏥</p>
+                    <p style="color: #666;">Professional healthcare service</p>
                 </div>
             </div>
         </div>
+        {% endif %}
+        
+        <!-- Doctor Stats -->
+        {% if current_user.role == 'doctor' %}
+        <div style="margin-top: 3rem; background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #333; margin-bottom: 1rem;">🩺 Doctor Tools</h3>
+            <p style="color: #666;">Manage your schedule, approve appointments, and update patient records from the Today's Schedule section.</p>
+        </div>
+        {% endif %}
+        
+        <!-- Admin Stats -->
+        {% if current_user.role == 'admin' %}
+        <div style="margin-top: 3rem; background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+            <h3 style="color: #333; margin-bottom: 1rem;">⚙️ Admin Tools</h3>
+            <p style="color: #666;">Manage doctors, view system activity, and monitor all appointments from the System Summary.</p>
+        </div>
+        {% endif %}
         
         {% else %}
         <div class="card" style="background: white; text-align: center;">

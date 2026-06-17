@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Appointments - Healthcare System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>📅 Appointments</h2>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    {% if current_user.role == 'patient' %}
+    <form method="POST" action="/appointments/book/">
+        <div class="form-group">
+            <label for="doctor_username">Doctor Username</label>
+            <input type="text" id="doctor_username" name="doctor_username" required placeholder="Doctor username">
+        </div>
+        <div class="form-group">
+            <label for="scheduled_at">Date & Time</label>
+            <input type="datetime-local" id="scheduled_at" name="scheduled_at" required>
+        </div>
+        <div class="form-group">
+            <label for="duration_minutes">Duration (minutes)</label>
+            <input type="number" id="duration_minutes" name="duration_minutes" value="30" min="15">
+        </div>
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" placeholder="Reason for appointment"></textarea>
+        </div>
+        <button type="submit">Book Appointment</button>
+    </form>
+    {% endif %}
+
+    <div style="margin-top: 2rem;">
+        <h3>Upcoming / Recent Appointments</h3>
+        {% if appointments %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+            <thead>
+                <tr>
+                    <th style="padding: 0.75rem; text-align: left;">ID</th>
+                    <th style="padding: 0.75rem; text-align: left;">Patient</th>
+                    <th style="padding: 0.75rem; text-align: left;">Doctor</th>
+                    <th style="padding: 0.75rem; text-align: left;">Date</th>
+                    <th style="padding: 0.75rem; text-align: left;">Duration</th>
+                    <th style="padding: 0.75rem; text-align: left;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr style="border-top: 1px solid #e0e0e0;">
+                    <td style="padding: 0.75rem;">{{ appointment[0] }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[1] if current_user.role != 'patient' else current_user.username }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[2] if current_user.role != 'doctor' else current_user.username }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[3] }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[4] }} min</td>
+                    <td style="padding: 0.75rem;">{{ appointment[5] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No appointments found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

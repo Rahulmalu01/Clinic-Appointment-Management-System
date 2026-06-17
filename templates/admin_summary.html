@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Summary - Healthcare System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>📈 Admin Summary</h2>
+    <div style="margin-top: 1.5rem;">
+        <h3>All Appointments</h3>
+        {% if appointments %}
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+            <thead>
+                <tr>
+                    <th style="padding: 0.75rem; text-align: left;">ID</th>
+                    <th style="padding: 0.75rem; text-align: left;">Patient</th>
+                    <th style="padding: 0.75rem; text-align: left;">Doctor</th>
+                    <th style="padding: 0.75rem; text-align: left;">Scheduled</th>
+                    <th style="padding: 0.75rem; text-align: left;">Duration</th>
+                    <th style="padding: 0.75rem; text-align: left;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr style="border-top: 1px solid #e0e0e0;">
+                    <td style="padding: 0.75rem;">{{ appointment[0] }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[1] }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[2] }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[3] }}</td>
+                    <td style="padding: 0.75rem;">{{ appointment[4] }} min</td>
+                    <td style="padding: 0.75rem;">{{ appointment[5] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No appointments found.</p>
+        {% endif %}
+
+        <h3>Recent Activity</h3>
+        {% if recent_activity %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 0.75rem; text-align: left;">Time</th>
+                    <th style="padding: 0.75rem; text-align: left;">User</th>
+                    <th style="padding: 0.75rem; text-align: left;">Role</th>
+                    <th style="padding: 0.75rem; text-align: left;">Action</th>
+                    <th style="padding: 0.75rem; text-align: left;">Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in recent_activity %}
+                <tr style="border-top: 1px solid #e0e0e0;">
+                    <td style="padding: 0.75rem;">{{ activity[6] }}</td>
+                    <td style="padding: 0.75rem;">{{ activity[1] or 'Unknown' }}</td>
+                    <td style="padding: 0.75rem;">{{ activity[2] }}</td>
+                    <td style="padding: 0.75rem;">{{ activity[3] }}</td>
+                    <td style="padding: 0.75rem;">{{ activity[5] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No recent activity found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
