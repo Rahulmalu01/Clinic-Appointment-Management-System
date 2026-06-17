@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Healthcare System{% endblock %}
+
+{% block content %}
+    {% if user %}
+        <div class="container" style="background: rgba(255, 255, 255, 0.95); margin-top: 2rem;">
+            <h2 style="color: #333;">Welcome, {{ user.full_name or user.username }}! 👋</h2>
+            <p style="color: #666; font-size: 1.1rem; margin-top: 1rem;">
+                Welcome to the Healthcare Management System
+            </p>
+            <div style="margin-top: 2rem;">
+                <a href="/dashboard/" style="display: inline-block; background: #667eea; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; margin-right: 1rem;">
+                    Go to Dashboard →
+                </a>
+                <a href="/profile/" style="display: inline-block; background: #764ba2; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none;">
+                    View Profile →
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="container" style="background: rgba(255, 255, 255, 0.95); margin-top: 2rem; max-width: 600px;">
+            <h2 style="color: #333;">Welcome to Healthcare System 🏥</h2>
+            <p style="color: #666; font-size: 1.1rem; margin: 1.5rem 0;">
+                Manage your health records, appointments, and medical information all in one place.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #333; margin-bottom: 0.5rem;">🔒 Secure</h4>
+                    <p style="color: #666; font-size: 0.9rem;">Your data is encrypted and protected</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #333; margin-bottom: 0.5rem;">⏱️ Fast</h4>
+                    <p style="color: #666; font-size: 0.9rem;">Quick access to your health information</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #333; margin-bottom: 0.5rem;">👨‍⚕️ Professional</h4>
+                    <p style="color: #666; font-size: 0.9rem;">Used by healthcare professionals</p>
+                </div>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <h4 style="color: #333; margin-bottom: 0.5rem;">📱 Easy</h4>
+                    <p style="color: #666; font-size: 0.9rem;">Simple and intuitive interface</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem;">
+                <a href="/login/" style="display: inline-block; background: #667eea; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; margin-right: 1rem; font-weight: 600;">
+                    Sign In
+                </a>
+                <a href="/signup/" style="display: inline-block; background: #764ba2; color: white; padding: 0.75rem 1.5rem; border-radius: 5px; text-decoration: none; font-weight: 600;">
+                    Create Account
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
