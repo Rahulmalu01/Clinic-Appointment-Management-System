@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Prescription - Healthcare System{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <h2>📝 Issue Prescription</h2>
+    
+    {% if error %}
+    <div style="padding: 0.75rem; margin-top: 1rem; background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 4px;">{{ error }}</div>
+    {% endif %}
+    
+    <form method="POST" action="/prescriptions/" style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 1.5rem;">
+        <div style="margin-bottom: 1rem;">
+            <label for="patient_username" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Patient Username</label>
+            <input type="text" id="patient_username" name="patient_username" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="medication_name" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Medication Name</label>
+            <input type="text" id="medication_name" name="medication_name" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="dosage" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Dosage (e.g., 500mg, 1 tablet)</label>
+            <input type="text" id="dosage" name="dosage" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="frequency" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Frequency (e.g., Twice a day, 3 times daily)</label>
+            <input type="text" id="frequency" name="frequency" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="duration_days" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Duration (days)</label>
+            <input type="number" id="duration_days" name="duration_days" value="30" min="1" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="instructions" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Instructions</label>
+            <textarea id="instructions" name="instructions" rows="4" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; resize: vertical;"></textarea>
+        </div>
+        
+        <div style="margin-bottom: 1rem;">
+            <label for="appointment_id" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Appointment ID (optional)</label>
+            <input type="number" id="appointment_id" name="appointment_id" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+        </div>
+        
+        <button type="submit" style="width: 100%; padding: 0.75rem; background: #2ecc71; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 1rem;">Issue Prescription</button>
+    </form>
+    
+    <div style="margin-top: 1.5rem; text-align: center;">
+        <a href="/prescriptions/" style="color: #667eea; text-decoration: none;">← Back to Prescriptions</a>
+    </div>
+</div>
+{% endblock %}

@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from contextlib import asynccontextmanager
-from database import init_db, get_user, create_user, create_doctor, create_patient, log_activity, create_appointment, get_appointment_by_id, update_appointment_status, reschedule_appointment, extend_appointment_duration, get_todays_appointments_for_doctor, get_appointments_for_patient, get_appointments_for_doctor, get_all_appointments, get_history_for_user, get_recent_activity
+from database import init_db, get_user, create_user, create_doctor, create_patient, log_activity, create_appointment, get_appointment_by_id, update_appointment_status, reschedule_appointment, extend_appointment_duration, get_todays_appointments_for_doctor, get_appointments_for_patient, get_appointments_for_doctor, get_all_appointments, get_history_for_user, get_recent_activity, create_prescription, get_prescriptions_for_patient, get_prescriptions_by_doctor, get_all_prescriptions, create_medical_history, get_medical_history_for_patient, update_medical_history
 from dotenv import load_dotenv
 
 import hashlib
@@ -292,6 +292,66 @@ async def admin_summary(request: Request, admin: UserPublic = Depends(require_ad
     appointments = get_all_appointments()
     recent_activity = get_recent_activity(50)
     return render(request, 'admin_summary.html', {"appointments": appointments, "recent_activity": recent_activity, "current_user": admin}, user=admin)
+
+
+@app.get('/prescriptions/')
+async def view_prescriptions(request: Request, current_user: UserPublic = Depends(get_current_user)):
+    if current_user.role == 'patient':
+        prescriptions = get_prescriptions_for_patient(current_user.username)
+    elif current_user.role == 'doctor':
+        prescriptions = get_prescriptions_by_doctor(current_user.username)
+    else:
+        prescriptions = get_all_prescriptions()
+    return render(request, 'prescriptions.html', {"prescriptions": prescriptions, "current_user": current_user}, user=current_user)
+
+
+@app.get('/prescriptions/new/')
+async def new_prescription_page(request: Request, current_user: UserPublic = Depends(require_doctor)):
+    # Doctor can issue prescriptions
+    return render(request, 'prescription_create.html', {"current_user": current_user}, user=current_user)
+
+
+@app.post('/prescriptions/', response_class=HTMLResponse)
+async def create_prescription_endpoint(request: Request, patient_username: str = Form(...), medication_name: str = Form(...), dosage: str = Form(...), frequency: str = Form(...), duration_days: int = Form(30), instructions: str = Form(""), appointment_id: Optional[int] = Form(None), current_user: UserPublic = Depends(require_doctor)):
+    try:
+        prescription_id = create_prescription(patient_username, current_user.username, medication_name, dosage, frequency, duration_days, instructions, appointment_id)
+        log_activity(current_user.username, current_user.role, "issued_prescription", patient_username, f"Prescription ID {prescription_id} for {medication_name}")
+        prescriptions = get_prescriptions_by_doctor(current_user.username)
+        return render(request, 'prescriptions.html', {"prescriptions": prescriptions, "current_user": current_user, "success": "Prescription issued successfully"}, user=current_user)
+    except Exception as e:
+        return render(request, 'prescription_create.html', {"error": str(e), "current_user": current_user}, user=current_user)
+
+
+@app.get('/medical-history/')
+async def view_medical_history(request: Request, current_user: UserPublic = Depends(get_current_user)):
+    if current_user.role == 'patient':
+        history = get_medical_history_for_patient(current_user.username)
+        return render(request, 'medical_history.html', {"history": history, "current_user": current_user}, user=current_user)
+    else:
+        # Doctors can access patient history (future: implement patient selection)
+        return render(request, 'medical_history.html', {"history": [], "current_user": current_user}, user=current_user)
+
+
+@app.get('/medical-history/new/')
+async def new_medical_history_page(request: Request, current_user: UserPublic = Depends(require_patient)):
+    return render(request, 'medical_history_create.html', {"current_user": current_user}, user=current_user)
+
+
+@app.post('/medical-history/', response_class=HTMLResponse)
+async def create_medical_history_endpoint(request: Request, condition_name: str = Form(...), diagnosed_date: Optional[str] = Form(None), treatment: str = Form(""), notes: str = Form(""), current_user: UserPublic = Depends(require_patient)):
+    try:
+        history_id = create_medical_history(current_user.username, condition_name, diagnosed_date, "active", treatment, notes)
+        log_activity(current_user.username, current_user.role, "added_medical_history", None, f"Added {condition_name} to medical history")
+        history = get_medical_history_for_patient(current_user.username)
+        return render(request, 'medical_history.html', {"history": history, "current_user": current_user, "success": "Medical history added successfully"}, user=current_user)
+    except Exception as e:
+        return render(request, 'medical_history_create.html', {"error": str(e), "current_user": current_user}, user=current_user)
+
+
+@app.get('/patient/{patient_username}/medical-history/')
+async def view_patient_medical_history(request: Request, patient_username: str, current_user: UserPublic = Depends(require_doctor)):
+    history = get_medical_history_for_patient(patient_username)
+    return render(request, 'patient_medical_history.html', {"history": history, "patient_username": patient_username, "current_user": current_user}, user=current_user)
 
 
 @app.get('/logout/')

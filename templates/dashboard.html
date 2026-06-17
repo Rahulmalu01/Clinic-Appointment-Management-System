@@ -58,6 +58,22 @@
                     View Profile
                 </a>
             </div>
+            
+            <div class="card">
+                <h3 style="color: #e74c3c; margin-bottom: 1rem;">💊 Prescriptions</h3>
+                <p style="color: #666; margin-bottom: 1rem;">View your prescriptions from doctors</p>
+                <a href="/prescriptions/" style="display: block; width: 100%; padding: 0.75rem; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View Prescriptions
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: #9b59b6; margin-bottom: 1rem;">📋 Medical History</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Manage your medical history</p>
+                <a href="/medical-history/" style="display: block; width: 100%; padding: 0.75rem; background: #9b59b6; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View History
+                </a>
+            </div>
             {% endif %}
             
             {% if current_user.role == 'doctor' %}
@@ -83,6 +99,14 @@
                 <p style="color: #666; margin-bottom: 1rem;">View your activity history</p>
                 <a href="/history/" style="display: block; width: 100%; padding: 0.75rem; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
                     View Activity
+                </a>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: #e74c3c; margin-bottom: 1rem;">💊 Prescriptions</h3>
+                <p style="color: #666; margin-bottom: 1rem;">Issue and manage prescriptions</p>
+                <a href="/prescriptions/" style="display: block; width: 100%; padding: 0.75rem; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; text-decoration: none; text-align: center;">
+                    View Prescriptions
                 </a>
             </div>
             {% endif %}

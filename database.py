@@ -77,6 +77,36 @@ def init_db():
         )
     """)
 
+    # prescriptions table for doctor prescriptions to patients
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            id SERIAL PRIMARY KEY,
+            patient_username TEXT REFERENCES users(username) ON DELETE CASCADE,
+            doctor_username TEXT REFERENCES users(username) ON DELETE CASCADE,
+            appointment_id INT REFERENCES appointments(id) ON DELETE SET NULL,
+            medication_name TEXT NOT NULL,
+            dosage TEXT NOT NULL,
+            frequency TEXT NOT NULL,
+            duration_days INT,
+            instructions TEXT DEFAULT '',
+            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        )
+    """)
+
+    # medical_history table for patient medical records
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS medical_history (
+            id SERIAL PRIMARY KEY,
+            patient_username TEXT REFERENCES users(username) ON DELETE CASCADE,
+            condition_name TEXT NOT NULL,
+            diagnosed_date DATE,
+            status TEXT DEFAULT 'active',
+            treatment TEXT DEFAULT '',
+            notes TEXT DEFAULT '',
+            created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        )
+    """)
+
     conn.commit()
     cursor.close()
     conn.close()
@@ -314,6 +344,117 @@ def create_patient(username: str, name: str, email: str, phone: str, dob: Option
     except psycopg2.IntegrityError:
         conn.rollback()
         raise HTTPException(status_code=409, detail="Patient record already exists or user missing")
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def create_prescription(patient_username: str, doctor_username: str, medication_name: str, dosage: str, frequency: str, duration_days: int = 30, instructions: str = "", appointment_id: Optional[int] = None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO prescriptions (patient_username, doctor_username, medication_name, dosage, frequency, duration_days, instructions, appointment_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (patient_username, doctor_username, medication_name, dosage, frequency, duration_days, instructions, appointment_id)
+        )
+        conn.commit()
+        cursor.execute("SELECT id FROM prescriptions ORDER BY id DESC LIMIT 1")
+        prescription_id = cursor.fetchone()[0]
+        return prescription_id
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_prescriptions_for_patient(patient_username: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, doctor_username, medication_name, dosage, frequency, duration_days, instructions, created_at FROM prescriptions WHERE patient_username = %s ORDER BY created_at DESC",
+        (patient_username,)
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+
+def get_prescriptions_by_doctor(doctor_username: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, patient_username, medication_name, dosage, frequency, duration_days, instructions, created_at FROM prescriptions WHERE doctor_username = %s ORDER BY created_at DESC",
+        (doctor_username,)
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+
+def get_all_prescriptions():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, patient_username, doctor_username, medication_name, dosage, frequency, duration_days, instructions, created_at FROM prescriptions ORDER BY created_at DESC"
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+
+def create_medical_history(patient_username: str, condition_name: str, diagnosed_date: Optional[str] = None, status: str = "active", treatment: str = "", notes: str = ""):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO medical_history (patient_username, condition_name, diagnosed_date, status, treatment, notes) VALUES (%s, %s, %s, %s, %s, %s)",
+            (patient_username, condition_name, diagnosed_date, status, treatment, notes)
+        )
+        conn.commit()
+        cursor.execute("SELECT id FROM medical_history ORDER BY id DESC LIMIT 1")
+        history_id = cursor.fetchone()[0]
+        return history_id
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_medical_history_for_patient(patient_username: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, condition_name, diagnosed_date, status, treatment, notes, created_at FROM medical_history WHERE patient_username = %s ORDER BY created_at DESC",
+        (patient_username,)
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+
+def update_medical_history(history_id: int, status: str = None, treatment: str = None, notes: str = None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        updates = []
+        values = []
+        if status is not None:
+            updates.append("status = %s")
+            values.append(status)
+        if treatment is not None:
+            updates.append("treatment = %s")
+            values.append(treatment)
+        if notes is not None:
+            updates.append("notes = %s")
+            values.append(notes)
+        
+        if updates:
+            values.append(history_id)
+            query = "UPDATE medical_history SET " + ", ".join(updates) + " WHERE id = %s"
+            cursor.execute(query, tuple(values))
+            conn.commit()
     finally:
         cursor.close()
         conn.close()

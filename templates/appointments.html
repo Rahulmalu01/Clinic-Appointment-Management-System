@@ -47,6 +47,7 @@
                     <th style="padding: 0.75rem; text-align: left;">Date</th>
                     <th style="padding: 0.75rem; text-align: left;">Duration</th>
                     <th style="padding: 0.75rem; text-align: left;">Status</th>
+                    {% if current_user.role == 'doctor' %}<th style="padding: 0.75rem; text-align: left;">Actions</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -58,6 +59,11 @@
                     <td style="padding: 0.75rem;">{{ appointment[3] }}</td>
                     <td style="padding: 0.75rem;">{{ appointment[4] }} min</td>
                     <td style="padding: 0.75rem;">{{ appointment[5] }}</td>
+                    {% if current_user.role == 'doctor' %}
+                    <td style="padding: 0.75rem;">
+                        <a href="/patient/{{ appointment[1] }}/medical-history/" style="display: inline-block; background: #667eea; color: white; padding: 0.35rem 0.7rem; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 0.9rem;">View History</a>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

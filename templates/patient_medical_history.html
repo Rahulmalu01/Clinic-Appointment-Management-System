@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Medical History - Healthcare System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>📋 Medical History for {{ patient_username }}</h2>
+    
+    <div style="margin-top: 1.5rem;">
+        {% if history %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="padding: 0.75rem; text-align: left;">ID</th>
+                    <th style="padding: 0.75rem; text-align: left;">Condition</th>
+                    <th style="padding: 0.75rem; text-align: left;">Diagnosed</th>
+                    <th style="padding: 0.75rem; text-align: left;">Status</th>
+                    <th style="padding: 0.75rem; text-align: left;">Treatment</th>
+                    <th style="padding: 0.75rem; text-align: left;">Notes</th>
+                    <th style="padding: 0.75rem; text-align: left;">Added</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in history %}
+                <tr style="border-top: 1px solid #e0e0e0;">
+                    <td style="padding: 0.75rem;">{{ record[0] }}</td>
+                    <td style="padding: 0.75rem;">{{ record[1] }}</td>
+                    <td style="padding: 0.75rem;">{{ record[2] if record[2] else '-' }}</td>
+                    <td style="padding: 0.75rem;">
+                        <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; {% if record[3] == 'active' %}background: #fff3cd; color: #856404;{% elif record[3] == 'resolved' %}background: #d4edda; color: #155724;{% else %}background: #e2e3e5; color: #383d41;{% endif %}">{{ record[3] }}</span>
+                    </td>
+                    <td style="padding: 0.75rem;">{{ record[4] if record[4] else '-' }}</td>
+                    <td style="padding: 0.75rem;">{{ record[5] if record[5] else '-' }}</td>
+                    <td style="padding: 0.75rem; font-size: 0.9rem; color: #666;">{{ record[6][:10] if record[6] else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No medical history records available for this patient.</p>
+        {% endif %}
+    </div>
+    
+    <div style="margin-top: 1.5rem;">
+        <a href="/appointments/" style="color: #667eea; text-decoration: none;">← Back to Appointments</a>
+    </div>
+</div>
+{% endblock %}
