@@ -136,7 +136,7 @@ def render(request: Request, name: str, context: dict | None = None, user: Optio
         payload["user"] = user
     if context:
         payload.update(context)
-    return templates.TemplateResponse(name=name, context=payload)
+    return templates.TemplateResponse(request=request, name=name, context=payload)
 
 
 def require_admin(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:

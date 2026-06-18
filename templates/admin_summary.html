@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Admin Summary - Healthcare System{% endblock %}
-
 {% block content %}
 <div class="container">
     <h2>📈 Admin Summary</h2>
@@ -35,7 +33,6 @@
         {% else %}
         <p>No appointments found.</p>
         {% endif %}
-
         <h3>Recent Activity</h3>
         {% if recent_activity %}
         <table style="width: 100%; border-collapse: collapse;">

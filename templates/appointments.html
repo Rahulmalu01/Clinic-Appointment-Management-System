@@ -1,18 +1,14 @@
 {% extends "base.html" %}
-
 {% block title %}Appointments - Healthcare System{% endblock %}
-
 {% block content %}
 <div class="container">
     <h2>📅 Appointments</h2>
-
     {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
     {% if success %}
     <div class="alert alert-success">{{ success }}</div>
     {% endif %}
-
     {% if current_user.role == 'patient' %}
     <form method="POST" action="/appointments/book/">
         <div class="form-group">
@@ -34,7 +30,6 @@
         <button type="submit">Book Appointment</button>
     </form>
     {% endif %}
-
     <div style="margin-top: 2rem;">
         <h3>Upcoming / Recent Appointments</h3>
         {% if appointments %}
