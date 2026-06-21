@@ -1,71 +1,28 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, status, Form
+from fastapi import FastAPI, Request, Depends, HTTPException, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.security import OAuth2PasswordBearer
 
-from datetime import datetime, timedelta, timezone
 from typing import Optional
-from pydantic import BaseModel, Field
-from jose import jwt, JWTError
 from passlib.context import CryptContext
 from contextlib import asynccontextmanager
 from database import init_db, get_user, create_user, create_doctor, create_patient, log_activity, create_appointment, get_appointment_by_id, update_appointment_status, reschedule_appointment, extend_appointment_duration, get_todays_appointments_for_doctor, get_appointments_for_patient, get_appointments_for_doctor, get_all_appointments, get_history_for_user, get_recent_activity, create_prescription, get_prescriptions_for_patient, get_prescriptions_by_doctor, get_all_prescriptions, create_medical_history, get_medical_history_for_patient, update_medical_history
 from dotenv import load_dotenv
 
+from schemas import PatientSignup, DoctorCreate, UserPublic, AppointmentCreate
+from access_token import create_access_token, get_current_user, get_current_user_optional, get_token_from_request
 import hashlib
 import os
 
 load_dotenv()
-
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     yield
 
-
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
-
-
 app = FastAPI(title="Healthcare", lifespan=lifespan)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login", auto_error=False)
-
-
-class PatientSignup(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=6)
-    full_name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-
-
-class DoctorCreate(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    password: str = Field(..., min_length=6)
-    name: str
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    specialty: Optional[str] = None
-    details: Optional[str] = None
-
-
-class UserPublic(BaseModel):
-    username: str
-    role: str
-    full_name: Optional[str] = None
-    email: Optional[str] = None
-    phone: Optional[str] = None
-
-
-class AppointmentCreate(BaseModel):
-    doctor_username: str
-    scheduled_at: str
-    duration_minutes: int = 30
-    notes: Optional[str] = None
 
 
 def hash_password(password: str):
@@ -76,59 +33,8 @@ def verify_password(plain_password: str, hashed_password: str):
     plain_password = hashlib.sha256(plain_password.encode("utf-8")).hexdigest()
     return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(data: dict, expires_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def get_token_from_request(request: Request, token: Optional[str] = Depends(oauth2_scheme)) -> Optional[str]:
-    # prefer Authorization header token, fall back to cookie
-    if token:
-        return token
-    return request.cookies.get("access_token")
-
-
-async def get_current_user(token: Optional[str] = Depends(get_token_from_request)) -> UserPublic:
-    cred_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    if not token:
-        raise cred_exc
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: Optional[str] = payload.get("sub")
-        if username is None:
-            raise cred_exc
-    except JWTError:
-        raise cred_exc
-    user = get_user(username)
-    if not user:
-        raise cred_exc
-    return UserPublic(username=user["username"], role=user.get("role", "patient"), full_name=user.get("full_name"), email=user.get("email"), phone=user.get("phone"))
-
-
-async def get_current_user_optional(token: Optional[str] = Depends(get_token_from_request)) -> Optional[UserPublic]:
-    if not token:
-        return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: Optional[str] = payload.get("sub")
-        if username is None:
-            return None
-    except JWTError:
-        return None
-    user = get_user(username)
-    if not user:
-        return None
-    return UserPublic(username=user["username"], role=user.get("role", "patient"), full_name=user.get("full_name"), email=user.get("email"), phone=user.get("phone"))
-
 
 templates = Jinja2Templates(directory="templates")
-
 
 def render(request: Request, name: str, context: dict | None = None, user: Optional[UserPublic] = None):
     payload = {"request": request}
@@ -136,7 +42,7 @@ def render(request: Request, name: str, context: dict | None = None, user: Optio
         payload["user"] = user
     if context:
         payload.update(context)
-    return templates.TemplateResponse(name=name, context=payload)
+    return templates.TemplateResponse(request=request, name=name, context=payload)
 
 
 def require_admin(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:
